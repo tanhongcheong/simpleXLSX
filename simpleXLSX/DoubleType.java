@@ -18,7 +18,7 @@ public class DoubleType extends DataType
     */
     public String getXMLString()
     {
-        return "<c s='"+getCellStyleId()+"'><v>"+d+"</v></c>";
+        return "<c r='"+getAddress()+"' s='"+getCellStyleId()+"'><v>"+d+"</v></c>";
     }
     
     /**

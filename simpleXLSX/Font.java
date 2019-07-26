@@ -6,6 +6,36 @@ package simpleXLSX;
 */
 public class Font
 {
+    /**
+    *The fill colour
+    */
+    private String colour;
+  
+    /**
+      *set whether the font is italics
+      */
+    private boolean italics;
+
+    /**
+      *whether the font is underlined
+      */
+    private boolean underline;
+
+    /**
+      *whether the font is bold
+      */
+    private boolean bold;
+
+    /**
+      *the size of the font
+      */
+    private int size;
+
+    /**
+      *The name of the font
+      */
+    private String name;
+    
     public Font()
     {
         size = 11;
@@ -165,36 +195,4 @@ public class Font
     {
         return colour;
     }
-
-    
-    /**
-      *The fill colour
-      */
-    private String colour;
-    
-    /**
-      *set whether the font is italics
-      */
-    private boolean italics;
-
-    /**
-      *whether the font is underlined
-      */
-    private boolean underline;
-
-    /**
-      *whether the font is bold
-      */
-    private boolean bold;
-
-    /**
-      *the size of the font
-      */
-    private int size;
-
-    /**
-      *The name of the font
-      */
-    private String name;
-
 }

@@ -11,8 +11,7 @@ public class TestReader
     {
         try
         {
-            SimpleXLSXFile xlsxFile = SimpleXLSXFile.read("import.xlsx");
-            //SimpleXLSXFile xlsxFile = SimpleXLSXFile.read("read example.xlsx");
+            SimpleXLSXFile xlsxFile = SimpleXLSXFile.read("testXLSX.xlsx");
             for(Spreadsheet sheet:xlsxFile.getSheets())
             {
                 System.out.println("["+sheet.getName()+"]");

@@ -6,12 +6,60 @@ package simpleXLSX;
 */
 public abstract class DataType
 {
+    /**
+      *The fill style
+      */
+      private Fill fill;
+
+      /**
+        *the font in this cell
+        */
+      private Font font;
+      
+      /**the border in this cell
+      */
+      private Border border;
+      
+    /**
+      *The style of the cell
+      */
+    private int styleId;
+
+    /**
+     *The row index (start from 1) 
+     */
+    private int row;
+
+    /**
+     *The col index (start from 1) 
+     */
+    private int col;
+
     public DataType()
     {
         styleId = 0;
         font = new Font();
         fill = new Fill();
         //border = new Border();
+    }
+    
+    /**
+     * Set the address
+     * @param row the row
+     * @param col the col
+     */
+    public void setAddress(int row, int col)
+    {
+        this.row = row;
+        this.col = col;
+    }
+
+    /**
+     * @return the excel address
+     */
+    public String getAddress()
+    {
+        return Spreadsheet.getExcelColName(col)+row;
     }
     
     /**@return the XML string that represent this data type
@@ -161,24 +209,4 @@ public abstract class DataType
     {
         return border;
     }
-    
-    /**
-      *The fill style
-      */
-    private Fill fill;
-
-    /**
-      *the font in this cell
-      */
-    private Font font;
-    
-    /**the border in this cell
-    */
-    private Border border;
-    
-    /**
-      *The style of the cell
-      */
-    private int styleId;
-
 }

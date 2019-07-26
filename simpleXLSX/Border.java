@@ -7,6 +7,11 @@ package simpleXLSX;
 */
 public class Border
 {
+    /**
+      *The colour
+      */
+    private String colour;
+    
     public Border()
     {
         colour = "FFFFFFFF";
@@ -75,9 +80,4 @@ public class Border
     {
         return colour;
     }
-
-    /**
-      *The colour
-      */
-    private String colour;
 }

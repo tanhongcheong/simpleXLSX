@@ -7,6 +7,18 @@ package simpleXLSX;
 */
 public class CellStyle
 {
+    /**the id of the font
+    */
+    public int fontId = 0;
+    
+    /**the id of the fill
+    */
+    public int fillId = 0;
+    
+    /**the id of the border
+    */
+    public int borderId = 0;
+
     public int hashCode()
     {
         String thisStr = "fill="+fillId+",font="+fontId;
@@ -29,7 +41,7 @@ public class CellStyle
         }
     }
     
-    /**@return the XML string that represent this font
+    /**@return the XML string that represent this cell style
     */
     public String getXMLString()
     {
@@ -40,16 +52,4 @@ public class CellStyle
         s = s + " numFmtId='0' xfId='0' applyFont='1' applyFill='1'/>";
         return s;
     }
-    
-    /**the id of the font
-    */
-    public int fontId = 0;
-    
-    /**the id of the fill
-    */
-    public int fillId = 0;
-    
-    /**the id of the border
-    */
-    public int borderId = 0;
 }

@@ -6,6 +6,11 @@ package simpleXLSX;
 */
 public class FormulaType extends DataType
 {
+    /**
+      *the formula
+      */
+    private String f;
+
     /**constructor
     *@param f the formula
     */
@@ -17,9 +22,8 @@ public class FormulaType extends DataType
     /**@return the XML string that represent this data type
     */
     public String getXMLString()
-    {
-        
-        return "<c s='"+getCellStyleId()+"'><f>"+f.replace("&","&amp;")+"</f></c>";
+    {        
+        return "<c r='"+getAddress()+"' s='"+getCellStyleId()+"'><f>"+f.replace("&","&amp;")+"</f></c>";
     }
     
     /**
@@ -45,10 +49,4 @@ public class FormulaType extends DataType
     {
         return f;
     }
-    
-    /**
-      *the formula
-      */
-    private String f;
-
 }

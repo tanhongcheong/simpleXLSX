@@ -7,6 +7,11 @@ package simpleXLSX;
 */
 public class Fill
 {
+    /**
+      *The fill colour
+      */
+    private String colour;
+
     public Fill()
     {
         colour = "FFFFFFFF";
@@ -57,11 +62,5 @@ public class Fill
     public String getColour()
     {
         return colour;
-    }
-
-    
-    /**
-      *The fill colour
-      */
-    private String colour;
+    }   
 }

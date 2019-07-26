@@ -3,12 +3,10 @@ package simpleXLSX;
 import java.util.*;
 import java.io.*;
 import java.util.zip.*;
-import java.io.*;
 import java.net.*;
 import java.nio.file.*;
 import javax.xml.parsers.*;
 import org.xml.sax.SAXException;
-import org.xml.sax.helpers.DefaultHandler;
 import org.w3c.dom.*;
 
 /**A class that defines a simple XLXS file
@@ -17,135 +15,7 @@ import org.w3c.dom.*;
 */
 public class SimpleXLSXFile
 {
-    /**read a xslx file, all data are string
-    *@param filename the filename
-    */
-    public static SimpleXLSXFile read(String filename)
-        throws IOException,SAXException,ParserConfigurationException
-    {
-        //System.out.println("Reading "+filename);
-        File file = new File(filename);
-        String url = "jar:"+file.toPath().toUri();
-        
-        URI uri = URI.create(url);
-        Map<String, String> env = new HashMap<>();
-        FileSystem zipFileSystem = FileSystems.newFileSystem(uri, env);
-        ArrayList<String> sharedStrings = new ArrayList<String>();
-        ArrayList<String> sheetNames = new ArrayList<String>();
-        
-        
-        DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
-        
-        
-        //read the worksheets name
-        {
-            InputStream is = Files.newInputStream(zipFileSystem.getPath("/xl/workbook.xml"));
-            Document document = documentBuilder.parse(is);
-            NodeList sheetsNode = document.getElementsByTagName("sheet");
-            //System.out.println("There are "+sheetsNode.getLength()+" sheets.");
-            
-            //create the array first
-            for(int i=0;i<sheetsNode.getLength();i++)
-            {
-                sheetNames.add("");
-            }
-            
-            for(int i=0;i<sheetsNode.getLength();i++)
-            {
-                Node element = sheetsNode.item(i);
-                NamedNodeMap attributes = element.getAttributes();
-                String rId = attributes.getNamedItem("r:id").getNodeValue();
-                int id = Integer.parseInt(rId.substring(3,rId.length()));
-                String name = attributes.getNamedItem("name").getNodeValue();
-                sheetNames.set(id-1,name);
-            }
-        }
-        /*
-        for(int i=0;i<sheetNames.size();i++)
-        {
-            System.out.println(""+i+":"+sheetNames.get(i));
-        }
-        */
-        
-        
-        //read the shared string
-        {
-            InputStream is = Files.newInputStream(zipFileSystem.getPath("/xl/sharedStrings.xml"));
-            Document document = documentBuilder.parse(is);
-            
-            //should have only one root element
-            NodeList sheetsNode = document.getElementsByTagName("t");
-            
-            for(int i=0;i<sheetsNode.getLength();i++)
-            {
-                Node element = sheetsNode.item(i);
-                String text = element.getTextContent();
-                System.out.println(text);
-                sharedStrings.add(text);
-            }
-        
-        }
-        
-        SimpleXLSXFile xlsxFile = new SimpleXLSXFile(filename);
-        //read the data each sheet
-        for(int i=0;i<sheetNames.size();i++)
-        {
-            String name = sheetNames.get(i);
-            Spreadsheet sheet = new Spreadsheet(name);
-            xlsxFile.addSheet(sheet);
-            //System.out.println("["+name+"]");
-            
-            InputStream is = Files.newInputStream(zipFileSystem.getPath("/xl/worksheets/sheet"+(i+1)+".xml"));
-            Document document = documentBuilder.parse(is);
-            NodeList rowElements = document.getElementsByTagName("row");
-            
-            for(int r=0;r<rowElements.getLength();r++)
-            {
-                //Node rowElement = rowElements.item(r);
-                Element rowElement = (Element)rowElements.item(r);
-                NodeList colElements = rowElement.getElementsByTagName("c");
-                ArrayList<DataType> row = new ArrayList<DataType>();
-                
-                for(int c=0;c<colElements.getLength();c++)
-                {
-                    Element colElement = (Element)colElements.item(c);
-                    NamedNodeMap attributes = colElement.getAttributes();
-                    String type = attributes.getNamedItem("t").getNodeValue();
-                    String address = attributes.getNamedItem("r").getNodeValue();
-                    String colText = "";
-                    
-                    
-                    NodeList vElements = colElement.getElementsByTagName("v");
-                    if (vElements.getLength()>0)
-                    {
-                        String valueString = vElements.item(0).getTextContent();
-                        colText = valueString;
-                        if (type==null)
-                        {
-                        }
-                        else if (type.equals("s"))
-                        {
-                            int value = Integer.parseInt(valueString);
-                            colText = sharedStrings.get(value);
-                        }
-                        int col = Spreadsheet.getColFromExcelColName(address);
-                        while (col>row.size())
-                        {
-                            row.add(new StringType(""));
-                        }
-                        row.add(new StringType(colText));
-                    }
-                }
-                sheet.addDataRow(row);
-            }
-        }
-
-        zipFileSystem.close();
-        return xlsxFile;
-    }
-    
-    /**the list of spreadsheet
+        /**the list of spreadsheet
     */
     private ArrayList<Spreadsheet> sheets;
     
@@ -178,14 +48,10 @@ public class SimpleXLSXFile
     */
     private ZipOutputStream zos;
     
-    /**the root of the zip file
-    */
-    private ZipEntry root;
-    
     /**the buffered writer
     */
     private BufferedWriter writer;
-    
+
     /**constructor
     *@param filename the filename of the file
     */
@@ -198,6 +64,119 @@ public class SimpleXLSXFile
         fills = new ArrayList<Fill>();
         borders = new ArrayList<Border>();
         cellStyles = new ArrayList<CellStyle>();
+    }
+
+    /**read a xslx file, all data are string
+    *@param filename the filename
+    */
+    public static SimpleXLSXFile read(String filename)
+        throws IOException,SAXException,ParserConfigurationException
+    {
+        File file = new File(filename);
+        String url = "jar:"+file.toPath().toUri();
+        
+        URI uri = URI.create(url);
+        Map<String, String> env = new HashMap<>();
+        FileSystem zipFileSystem = FileSystems.newFileSystem(uri, env);
+        ArrayList<String> sharedStrings = new ArrayList<String>();
+        ArrayList<String> sheetNames = new ArrayList<String>();
+        
+        DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+        
+        //read the worksheets name
+        {
+            InputStream is = Files.newInputStream(zipFileSystem.getPath("/xl/workbook.xml"));
+            Document document = documentBuilder.parse(is);
+            NodeList sheetsNode = document.getElementsByTagName("sheet");
+            
+            //create the array first
+            for(int i=0;i<sheetsNode.getLength();i++)
+            {
+                sheetNames.add("");
+            }
+            
+            for(int i=0;i<sheetsNode.getLength();i++)
+            {
+                Element element = (Element) sheetsNode.item(i);
+                String rId = element.getAttribute("r:id");
+                int id = Integer.parseInt(rId.substring(3,rId.length()));
+                String name = element.getAttribute("name");
+                sheetNames.set(id-1,name);
+            }
+        }
+        
+        //read the shared string
+        {
+            InputStream is = Files.newInputStream(zipFileSystem.getPath("/xl/sharedStrings.xml"));
+            Document document = documentBuilder.parse(is);
+            
+            //should have only one root element
+            NodeList sheetsNode = document.getElementsByTagName("t");
+            
+            for(int i=0;i<sheetsNode.getLength();i++)
+            {
+                Node element = sheetsNode.item(i);
+                String text = element.getTextContent();
+                sharedStrings.add(text);
+            }
+        
+        }
+        
+        SimpleXLSXFile xlsxFile = new SimpleXLSXFile(filename);
+        //read the data each sheet
+        for(int i=0;i<sheetNames.size();i++)
+        {
+            String name = sheetNames.get(i);
+            Spreadsheet sheet = new Spreadsheet(name);
+            xlsxFile.addSheet(sheet);
+            
+            InputStream is = Files.newInputStream(zipFileSystem.getPath("/xl/worksheets/sheet"+(i+1)+".xml"));
+            Document document = documentBuilder.parse(is);
+            NodeList rowElements = document.getElementsByTagName("row");
+            
+            for(int r=0;r<rowElements.getLength();r++)
+            {
+                //Node rowElement = rowElements.item(r);
+                Element rowElement = (Element)rowElements.item(r);
+                NodeList colElements = rowElement.getElementsByTagName("c");
+                ArrayList<DataType> row = new ArrayList<DataType>();
+                
+                for(int c=0;c<colElements.getLength();c++)
+                {
+                    Element colElement = (Element)colElements.item(c);
+                    String type = colElement.getAttribute("t");
+                    String address = colElement.getAttribute("r");
+                    String colText = "";
+                    
+                    
+                    NodeList vElements = colElement.getElementsByTagName("v");
+                    if (vElements.getLength()>0)
+                    {
+                        String valueString = vElements.item(0).getTextContent();
+                        colText = valueString;
+                        if (type==null)
+                        {
+                        }
+                        else if (type.equals("s"))
+                        {
+                            int value = Integer.parseInt(valueString);
+                            colText = sharedStrings.get(value);
+                        }
+                        int col = Spreadsheet.getColFromExcelColName(address);
+                        while (col>row.size())
+                        {
+                            row.add(new StringType(""));
+                        }
+                        row.add(new StringType(colText));
+                    }
+                }
+                sheet.addDataRow(row);
+            }
+        }
+
+        zipFileSystem.close();
+        return xlsxFile;
     }
     
     /**add a spreadsheet
@@ -234,9 +213,12 @@ public class SimpleXLSXFile
         for(List<DataType> row:rows)
         {
             writer.write("\t<row r='"+rowNo+"' spans='1:"+row.size()+"'>");writer.newLine();
+            int colNo = 1;
             for(DataType data:row)
             {
+                data.setAddress(rowNo, colNo);
                 writer.write("\t\t"+data.getXMLString());writer.newLine();
+                colNo++;
             }
             writer.write("\t</row>");writer.newLine();
             rowNo++;
@@ -478,7 +460,8 @@ public class SimpleXLSXFile
         writer.write("<?xml version='1.0' encoding='UTF-8' standalone='yes'?>");writer.newLine();
         writer.write("<Relationships xmlns='http://schemas.openxmlformats.org/package/2006/relationships'>");writer.newLine();
         int id=1;
-        for(Spreadsheet sheet:sheets)
+        
+        for(int i=0;i<sheets.size();i++)
         {
             String data = "<Relationship Id='rId"+id+"' Type='http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet' Target='worksheets/sheet"+id+".xml'/>";
             writer.write("\t"+data);writer.newLine();
@@ -512,7 +495,7 @@ public class SimpleXLSXFile
         writer.write("\t<Default Extension='xml' ContentType='application/xml'/>");writer.newLine();
         writer.write("\t<Override PartName='/xl/workbook.xml' ContentType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml'/>");writer.newLine();
         int id = 1;
-        for(Spreadsheet sheet:sheets)
+        for(int i=0;i<sheets.size();i++)
         {
             String data = "<Override PartName='/xl/worksheets/sheet"+id+".xml' ContentType='application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml'/>";
             writer.write('\t'+data);writer.newLine();

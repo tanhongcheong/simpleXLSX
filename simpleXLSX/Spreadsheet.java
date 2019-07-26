@@ -8,6 +8,15 @@ import java.util.*;
 */
 public class Spreadsheet
 {
+    /**
+      *the name of the spreadsheet
+      */
+    private String name;
+    
+    /**the array of rows of data
+      */
+    private List<List<DataType>> rows;
+    
     /**Constructor
     *@param name the name of the spread sheet
     */
@@ -129,10 +138,11 @@ public class Spreadsheet
         return data;
     }
     
-    /**@return the column name in excel, col starts from 0!!
+    /**@return the column name in excel, col starts from 1!!
     */
     public static String getExcelColName(int col)
     {
+        col = col-1;
         if (col<26)
         {
             return ""+(char)(col+65);
@@ -189,25 +199,4 @@ public class Spreadsheet
         
         return getValue(colName);
     }
-    
-    /**
-      *the name of the spreadsheet
-      */
-    private String name;
-    
-    /**the array of rows of data
-    */
-    private List<List<DataType>> rows;
-    
-    /*
-    public static void main(String[] args)
-    {
-        for(int i=0;i<16384;i++)
-        {
-            String colName = getExcelColName(i);
-            int col = getColFromExcelColName(colName);
-            System.out.println(""+i+","+colName+","+col);
-        }
-    }
-    */
 }

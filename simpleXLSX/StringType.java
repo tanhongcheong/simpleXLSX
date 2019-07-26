@@ -6,6 +6,16 @@ package simpleXLSX;
 */
 public class StringType extends DataType
 {
+    /**
+      *the index in the shared string
+      */
+      private int index;
+
+      /**
+        *The string
+        */
+      private String s;  
+    
     /**constructor
     *@param s the string
     */
@@ -19,7 +29,7 @@ public class StringType extends DataType
     */
     public String getXMLString()
     {
-        return "<c t='s' s='"+getCellStyleId()+"'><v>"+index+"</v></c>";
+        return "<c r='"+getAddress()+"' t='s' s='"+getCellStyleId()+"'><v>"+index+"</v></c>";
     }
     
     
@@ -56,14 +66,4 @@ public class StringType extends DataType
     {
         return index;
     }
-
-    /**
-      *the index in the shared string
-      */
-    private int index;
-
-    /**
-      *The string
-      */
-    private String s;
 }
