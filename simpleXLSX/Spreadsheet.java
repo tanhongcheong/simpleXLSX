@@ -142,20 +142,32 @@ public class Spreadsheet
     */
     public static String getExcelColName(int col)
     {
-        col = col-1;
+        return getExcelColNameFrom0(col-1);
+    }
+    
+    /**@return the column name in excel, col starts from 0!!
+    */
+    private static String getExcelColNameFrom0(int col)
+    {
         if (col<26)
         {
+            //System.out.println("case 1, col="+col);
+            //System.out.println("Straight away return "+""+(char)(col+65));
             return ""+(char)(col+65);
         }
         else if (col<(27*26))
         {
             int index = (col-26)/26;
-            return ""+((char)(index+65))+getExcelColName(col-(index+1)*26);
+            //System.out.println("col="+col);
+            //System.out.println("index="+index);
+            //System.out.println("new col="+(col-(index+1)*26));
+            
+            return ""+((char)(index+65))+getExcelColNameFrom0(col-(index+1)*26);
         }
         else
         {
             int index = (col-702)/676;
-            return ""+((char)(index+65))+getExcelColName(col-(index+1)*676);
+            return ""+((char)(index+65))+getExcelColNameFrom0(col-(index+1)*676);
         }
     }
     
@@ -199,4 +211,15 @@ public class Spreadsheet
         
         return getValue(colName);
     }
+    
+    /*
+    public static void main(String[] args)
+    {
+        for(int i=1;i<=16384;i++)
+        {
+            System.out.println(getExcelColName(i));
+        }
+        //System.out.println(getExcelColNameFrom0(26));
+    }
+    */
 }
