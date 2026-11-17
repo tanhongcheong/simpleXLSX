@@ -12,29 +12,6 @@ namespace basic_XLSX_writer
 {
     namespace // annoymouse namespace
     {
-        /**
-         * Decode the alpha part of the Excell address
-         * @param alpha the alpha part of an Excel address
-         * @return the row starting from 1
-         */
-        int decodeAlpha(std::string alpha)
-        {
-            // algorithm
-            // if single character return ascii code - 64 (65 is A)
-            // else decode last char + 26*decode the front
-
-            if (alpha.length() == 1)
-            {
-                return alpha[0] - 64; // ASCII code for A is 65
-            }
-            else
-            {
-                std::string lastAlpha = alpha.substr(alpha.length() - 1, alpha.length());
-                std::string firstPart = alpha.substr(0, alpha.length() - 1);
-                return decodeAlpha(lastAlpha) + 26 * decodeAlpha(firstPart);
-            }
-        }
-
         /**@return the column name in excel, col starts from 0!!
          */
         std::string getExcelColNameFrom0(int col)
@@ -78,6 +55,7 @@ namespace basic_XLSX_writer
                 pos += to.length(); // Advance past the replacement to avoid infinite loops
             }
         }
+
         /**
          * Replace xml replace characters
          * @param s reference to  string to repplace
@@ -92,30 +70,8 @@ namespace basic_XLSX_writer
         };
     }
 
-    //start utilities functions
+    // start utilities functions
     //-----------------------------------
-
-    /**
-     * @param excelAddress the excel address
-     * @return the row,column of an excel address starting from 0
-     */
-    std::pair<int, int> getRowAndColumn(std::string excelAddress)
-    {
-        int row = 0;
-        int col = 0;
-        // split the numbers from alphabet
-        int digitStart = 0;
-        while (!std::isdigit(excelAddress[digitStart]) && digitStart < excelAddress.length())
-        {
-            digitStart++;
-        }
-        std::string alpha = excelAddress.substr(0, digitStart);
-        std::string numberStr = excelAddress.substr(digitStart, excelAddress.length());
-        row = std::stoi(numberStr) - 1;
-        col = decodeAlpha(alpha) - 1;
-        return std::make_pair(row, col);
-    }
-
     /**
      * @return the excel address
      * @param row the row starting from 0
@@ -138,10 +94,10 @@ namespace basic_XLSX_writer
         return getExcelAddress(startRow, startColumn) + ":" + getExcelAddress(startRow + noOfRows - 1, startColumn + noOfColumns - 1);
     }
 
-    //end utilities functions
+    // end utilities functions
     //-----------------------------------
 
-    //start definition of enums and to string functions
+    // start definition of enums and to string functions
     //----------------------------------------------
     enum class LineStyle
     {
@@ -267,7 +223,6 @@ namespace basic_XLSX_writer
             return "right";
         default:
             return "";
-            
         }
     }
 
@@ -293,7 +248,6 @@ namespace basic_XLSX_writer
             return "bottom";
         default:
             return "";
-            
         }
     }
 
@@ -304,10 +258,10 @@ namespace basic_XLSX_writer
         Formula
     };
 
-    //end definition of enums and to string functions
+    // end definition of enums and to string functions
     //----------------------------------------------
 
-    //start definition of the classes
+    // start definition of the classes
     //--------------------
 
     /**A class that defines the border style of a cell
@@ -389,7 +343,7 @@ namespace basic_XLSX_writer
     {
     public:
         std::string colour = "FFFFFFFF";
-        
+
         PatternType pattern = PatternType::None;
 
         /**
@@ -409,7 +363,7 @@ namespace basic_XLSX_writer
          * compiler generated member-by-member comparison.
          * Defining == in C++20 also automatically generates the != operator
          */
-        bool operator==(const Fill& other) const = default;
+        bool operator==(const Fill &other) const = default;
     };
 
     /**A class that defines the font of a cell
@@ -454,13 +408,14 @@ namespace basic_XLSX_writer
         std::string getXMLString()
         {
             std::string s = "<font>";
-            s += bold?"<b/>":"";
-            s += italics?"<i/>":"";
-            s += underline?"<u/>":"";
-            s += std::format("<sz val='{}'/>",size);
-            s += std::format("<name val='{}'/>",name);
-            s += std::format("<color rgb='{}'/>",colour);
-            s = s + "</font>";;
+            s += bold ? "<b/>" : "";
+            s += italics ? "<i/>" : "";
+            s += underline ? "<u/>" : "";
+            s += std::format("<sz val='{}'/>", size);
+            s += std::format("<name val='{}'/>", name);
+            s += std::format("<color rgb='{}'/>", colour);
+            s = s + "</font>";
+            ;
             return s;
         }
 
@@ -468,7 +423,7 @@ namespace basic_XLSX_writer
          * compiler generated member-by-member comparison.
          * Defining == in C++20 also automatically generates the != operator
          */
-        bool operator==(const Font& other) const = default;
+        bool operator==(const Font &other) const = default;
     };
 
     /**A class that defines the style of a cell
@@ -561,46 +516,45 @@ namespace basic_XLSX_writer
         bool operator==(const CellStyle &other) const = default;
 
         /**@return the XML string that represent this cell style
-        */
+         */
         std::string getXMLString()
         {
             std::string s = "<xf";
-            s += std::format(" fillId='{}'",fillIndex);
-            s += std::format(" fontId='{}'",fontIndex);
-            s += std::format(" borderId='{}'",borderIndex);
-            s += std::format(" numFmtId='{}'",numberFormatId);
+            s += std::format(" fillId='{}'", fillIndex);
+            s += std::format(" fontId='{}'", fontIndex);
+            s += std::format(" borderId='{}'", borderIndex);
+            s += std::format(" numFmtId='{}'", numberFormatId);
             s = s + " xfId='0' applyFont='1' applyFill='1' applyNumberFormat='1'";
-        
-        
-        if ((horizontalAlignment!=HorizontalAlignment::None) || (verticalAlignment!=VerticalAlignment::None) || (textControl!=TextControl::None))
-        {
-            s = s +" applyAlignment='1'>";
-            s = s + "<alignment";
-            if (textControl==TextControl::WrapText)
+
+            if ((horizontalAlignment != HorizontalAlignment::None) || (verticalAlignment != VerticalAlignment::None) || (textControl != TextControl::None))
             {
-                s = s + " wrapText='1'";
+                s = s + " applyAlignment='1'>";
+                s = s + "<alignment";
+                if (textControl == TextControl::WrapText)
+                {
+                    s = s + " wrapText='1'";
+                }
+                else if (textControl == TextControl::ShrinkToFit)
+                {
+                    s = s + " shrinkToFit='1'";
+                }
+
+                if (horizontalAlignment != HorizontalAlignment::None)
+                {
+                    s = s + " horizontal='" + toString(horizontalAlignment) + "'";
+                }
+                if (verticalAlignment != VerticalAlignment::None)
+                {
+                    s = s + " vertical='" + toString(verticalAlignment) + "'";
+                }
+                s = s + "/>";
             }
-            else if (textControl==TextControl::ShrinkToFit)
+            else
             {
-                s = s + " shrinkToFit='1'";
+                s = s + ">";
             }
-            
-            if (horizontalAlignment!=HorizontalAlignment::None)
-            {
-                s = s+" horizontal='"+toString(horizontalAlignment)+"'";
-            }
-            if (verticalAlignment!=VerticalAlignment::None)
-            {
-                s = s+" vertical='"+toString(verticalAlignment)+"'";
-            }
-            s = s + "/>";
-        }
-        else
-        {
-            s = s + ">";
-        }
-        s = s + "</xf>";
-        return s;
+            s = s + "</xf>";
+            return s;
         }
     };
 
@@ -645,7 +599,6 @@ namespace basic_XLSX_writer
         int formulaColumns;
 
     public:
-        
         /**
          * the index in the cell styles
          */
@@ -793,7 +746,7 @@ namespace basic_XLSX_writer
             return xml;
         }
     };
-    
+
     class Sheet
     {
     private:
@@ -807,6 +760,17 @@ namespace basic_XLSX_writer
          */
         std::vector<std::vector<Cell>> rows;
 
+        /**the maximum digit width in pixel, used to calculate column width
+        */
+        int maxDigitWidth = 7;
+    
+        /**the width of the columns in points 0-255 characters
+        *0 means hidden
+        */
+        std::vector<int> widths;
+
+        int defaultWidth = 10;
+
     public:
         // Explicitly disable the default constructor
         Sheet() = delete;
@@ -818,6 +782,7 @@ namespace basic_XLSX_writer
         Sheet(std::string name)
         {
             this->name = name;
+            widths.push_back(defaultWidth);
         }
 
         /**
@@ -871,7 +836,12 @@ namespace basic_XLSX_writer
             {
                 list.push_back(Cell(rows.size(), c, row[c]));
             }
-            rows.push_back(list);
+            rows.push_back(list);//update the necessary widths
+            int difference = list.size()-widths.size();
+            for(int i=0;i<difference;i++)
+            {
+                widths.push_back(defaultWidth);
+            }
         }
 
         /**
@@ -912,7 +882,13 @@ namespace basic_XLSX_writer
             std::string xml = "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n";
             xml += "<worksheet xmlns='http://schemas.openxmlformats.org/spreadsheetml/2006/main' xmlns:r='http://schemas.openxmlformats.org/officeDocument/2006/relationships'>\n";
             // set the widths
-            // to do
+            xml += "<cols>\n";
+            for(int i=0;i<widths.size();i++)
+            {
+                double colWidth = ((int)((widths[i]*maxDigitWidth+5)*256.0/maxDigitWidth))/256.0;
+                xml += std::format("<col min='{}' max='{}' width='{}' customWidth='1'/>\n",i+1,i+1,colWidth);
+            }
+            xml += "</cols>\n";
 
             xml += "<sheetData>\n";
             for (int r = 0; r < rows.size(); r++)
@@ -974,7 +950,7 @@ namespace basic_XLSX_writer
          */
         void setBorderStyles(int r, int c, LineStyle left, LineStyle right, LineStyle top, LineStyle bottom)
         {
-            rows[r][c].style.border.setStyles(left,right,top,bottom);
+            rows[r][c].style.border.setStyles(left, right, top, bottom);
         }
 
         /**
@@ -988,7 +964,7 @@ namespace basic_XLSX_writer
          */
         void setBorderColours(int r, int c, std::string left, std::string right, std::string top, std::string bottom)
         {
-            rows[r][c].style.border.setColours(left,right,top,bottom);
+            rows[r][c].style.border.setColours(left, right, top, bottom);
         }
 
         /**
@@ -998,19 +974,84 @@ namespace basic_XLSX_writer
          * @param pattern the pattern
          * @param colour the colour
          */
-        void setFillPatternAndColour(int r, int c,PatternType pattern, std::string colour)
+        void setFillPatternAndColour(int r, int c, PatternType pattern, std::string colour)
         {
             rows[r][c].style.fill.pattern = pattern;
             rows[r][c].style.fill.colour = colour;
         }
 
+        /**
+         * Set the font size at row r and column c
+         * @param r the row
+         * @param c the columns
+         * @param size the size of the font
+         */
+        void setFontSize(int r, int c, int size)
+        {
+            rows[r][c].style.font.size = size;
+        }
+
+        /**
+         * Set the font colour at row r and column c
+         * @param r the row
+         * @param c the columns
+         * @param colour the font colour in the form of TTRRGGBB
+         */
+        void setFontColour(int r, int c, std::string colour)
+        {
+            rows[r][c].style.font.colour = colour;
+        }
+
+        /**
+         * Set the text control at row r and column c
+         * @param r the row
+         * @param c the columns
+         * @param tc the text control
+         */
+        void setTextControl(int r, int c, TextControl tc)
+        {
+            rows[r][c].style.textControl = tc;
+        }
+
+        /**
+         * Set the vertical alignment at row r and column c
+         * @param r the row
+         * @param c the columns
+         * @param va the vertical alignment
+         */
+        void setVerticalAlignment(int r, int c, VerticalAlignment va)
+        {
+            rows[r][c].style.verticalAlignment = va;
+        }
+
+        /**
+         * Set the vertical alignment at row r and column c
+         * @param r the row
+         * @param c the columns
+         * @param va the vertical alignment
+         */
+        void setHorizontalAlignment(int r, int c, HorizontalAlignment ha)
+        {
+            rows[r][c].style.horizontalAlignment = ha;
+        }
+
+        /**
+         * Set the column width at column c
+         * @param width the width of the column at c in terms of number of digits
+         */
+        void setColumnWidth(int c,int width)
+        {
+            widths[c] = width;
+        }
+
+
     };
-    //end definition of the classes
+    // end definition of the classes
     //--------------------
 
-    int createFile(std::string filename,std::vector<Sheet> sheets)
+    int createFile(std::string filename, std::vector<Sheet> sheets)
     {
-        //lambda functions
+        // lambda functions
         std::function createRelsContent = []()
         {
             std::string content = "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n";
@@ -1019,18 +1060,17 @@ namespace basic_XLSX_writer
             content += "</Relationships>\n";
             return content;
         };
-        
+
         std::function creatContentType = [&]()
         {
-            std::string content ="<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n";
+            std::string content = "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n";
             content += "<Types xmlns='http://schemas.openxmlformats.org/package/2006/content-types'>\n";
             content += "\t<Default Extension='rels' ContentType='application/vnd.openxmlformats-package.relationships+xml'/>\n";
             content += "\t<Default Extension='xml' ContentType='application/xml'/>\n";
             content += "\t<Override PartName='/xl/workbook.xml' ContentType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml'/>";
-            for(int i=1;i<=sheets.size();i++)//sheet id starts from 1
+            for (int i = 1; i <= sheets.size(); i++) // sheet id starts from 1
             {
-                content += std::format("\t<Override PartName='/xl/worksheets/sheet{}.xml' ContentType='application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml'/>\n",i);
-                
+                content += std::format("\t<Override PartName='/xl/worksheets/sheet{}.xml' ContentType='application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml'/>\n", i);
             }
             content += "\t<Override PartName='/xl/sharedStrings.xml' ContentType='application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml'/>\n";
             content += "\t<Override PartName='/xl/styles.xml' ContentType='application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml'/>\n";
@@ -1038,28 +1078,28 @@ namespace basic_XLSX_writer
             content += "</Types>\n";
             return content;
         };
-        
+
         std::function createXL_rel = [&]()
         {
             std::string content;
             content += "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n";
             content += "<Relationships xmlns='http://schemas.openxmlformats.org/package/2006/relationships'>\n";
-            int id=1;
-        
-            for(int i=0;i<sheets.size();i++)
+            int id = 1;
+
+            for (int i = 0; i < sheets.size(); i++)
             {
-                content += std::format("\t<Relationship Id='rId{}' Type='http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet' Target='worksheets/sheet{}.xml'/>\n",id,id);
+                content += std::format("\t<Relationship Id='rId{}' Type='http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet' Target='worksheets/sheet{}.xml'/>\n", id, id);
                 id++;
             }
 
-            content += std::format("\t<Relationship Id='rId{}' Type='http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings' Target='sharedStrings.xml'/>\n",id);
+            content += std::format("\t<Relationship Id='rId{}' Type='http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings' Target='sharedStrings.xml'/>\n", id);
             id++;
 
-            content += std::format("\t<Relationship Id='rId{}' Type='http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles' Target='styles.xml'/>",id);
+            content += std::format("\t<Relationship Id='rId{}' Type='http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles' Target='styles.xml'/>", id);
             id++;
 
-            content += std::format("<Relationship Id='rId{}' Type='http://schemas.openxmlformats.org/officeDocument/2006/relationships/sheetMetadata' Target='metadata.xml'/>\n",id);
-            
+            content += std::format("<Relationship Id='rId{}' Type='http://schemas.openxmlformats.org/officeDocument/2006/relationships/sheetMetadata' Target='metadata.xml'/>\n", id);
+
             content += "</Relationships>\n";
 
             return content;
@@ -1070,44 +1110,44 @@ namespace basic_XLSX_writer
             std::string content = "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n";
             content += "<workbook xmlns='http://schemas.openxmlformats.org/spreadsheetml/2006/main' xmlns:r='http://schemas.openxmlformats.org/officeDocument/2006/relationships'>\n";
             content += "\t<sheets>\n";
-            for(int i=0;i<sheets.size();i++)
+            for (int i = 0; i < sheets.size(); i++)
             {
-                //replace Reserved XML Syntax Characters
+                // replace Reserved XML Syntax Characters
                 std::string sheetName = sheets[i].getName();
                 replaceReservedCharacters(sheetName);
-                content += std::format("\t\t<sheet name='{}' sheetId='{}' r:id='rId{}'/>\n",sheetName,i+1,i+1);                
+                content += std::format("\t\t<sheet name='{}' sheetId='{}' r:id='rId{}'/>\n", sheetName, i + 1, i + 1);
             }
             content += "\t</sheets>\n";
             content += "</workbook>\n";
             return content;
         };
 
-        std::function createSharedStringsXML =[&]()
+        std::function createSharedStringsXML = [&]()
         {
-            //the list of shared strings
+            // the list of shared strings
             std::vector<std::string> sharedStrings;
 
-            int total = 0;//the total number of string in the spreadsheet
-            //update the shared strings
-            //search through the sheets for all strings
-            for(Sheet& sheet:sheets)
+            int total = 0; // the total number of string in the spreadsheet
+            // update the shared strings
+            // search through the sheets for all strings
+            for (Sheet &sheet : sheets)
             {
-                std::vector<std::vector<Cell>>& rows = sheet.getRows();
-                for(int r=0;r<rows.size();r++)
+                std::vector<std::vector<Cell>> &rows = sheet.getRows();
+                for (int r = 0; r < rows.size(); r++)
                 {
-                    for(int c=0;c<rows[r].size();c++)
+                    for (int c = 0; c < rows[r].size(); c++)
                     {
-                        if (rows[r][c].getType()==CellType::Text)
+                        if (rows[r][c].getType() == CellType::Text)
                         {
                             total++;
-                            //check if string exist
+                            // check if string exist
                             std::string s = rows[r][c].getValue();
                             auto it = std::ranges::find(sharedStrings, s);
                             if (it == sharedStrings.end())
                             {
-                                //string does not exist, add
+                                // string does not exist, add
                                 sharedStrings.push_back(s);
-                                rows[r][c].setSharedStringIndex(sharedStrings.size()-1);
+                                rows[r][c].setSharedStringIndex(sharedStrings.size() - 1);
                             }
                             else
                             {
@@ -1119,12 +1159,12 @@ namespace basic_XLSX_writer
                 }
             }
             std::string content = "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n";
-            content += std::format("<sst xmlns='http://schemas.openxmlformats.org/spreadsheetml/2006/main' count='{}' uniqueCount='{}'>\n",total,sharedStrings.size());
-            for(int i=0;i<sharedStrings.size();i++)
+            content += std::format("<sst xmlns='http://schemas.openxmlformats.org/spreadsheetml/2006/main' count='{}' uniqueCount='{}'>\n", total, sharedStrings.size());
+            for (int i = 0; i < sharedStrings.size(); i++)
             {
                 std::string s = sharedStrings[i];
                 replaceReservedCharacters(s);
-                content += std::format("\t<si><t>{}</t></si>\n",s);
+                content += std::format("\t<si><t>{}</t></si>\n", s);
             }
             content += "</sst>";
             return content;
@@ -1132,49 +1172,48 @@ namespace basic_XLSX_writer
 
         std::function createStylesXML = [&]()
         {
-            //the list of shared fonts
+            // the list of shared fonts
             std::vector<Font> fonts;
-            //push the default font in case there is nothing in the sheets
+            // push the default font in case there is nothing in the sheets
             Font defaultFont;
             fonts.push_back(defaultFont);
 
-            //the list of shared fills
+            // the list of shared fills
             std::vector<Fill> fills;
-            //hmmm it seems that the index 0 is no fill and index 1 fill must be gray125 no matter what
+            // hmmm it seems that the index 0 is no fill and index 1 fill must be gray125 no matter what
             Fill noFill;
-            fills.push_back(noFill);;
+            fills.push_back(noFill);
+            ;
             Fill gray125Fill;
             gray125Fill.pattern = PatternType::Gray125;
             fills.push_back(gray125Fill);
-            
 
-            //the list of shared borders
+            // the list of shared borders
             std::vector<Border> borders;
             Border defaultBorder;
             borders.push_back(defaultBorder);
 
-            //the list of cell styles
+            // the list of cell styles
             std::vector<CellStyle> styles;
             CellStyle defaulStyle;
             styles.push_back(defaulStyle);
 
-            //search through the sheets for all cell styles
-            for(Sheet& sheet:sheets)
+            // search through the sheets for all cell styles
+            for (Sheet &sheet : sheets)
             {
-                std::vector<std::vector<Cell>>& rows = sheet.getRows();
-                for(int r=0;r<rows.size();r++)
+                std::vector<std::vector<Cell>> &rows = sheet.getRows();
+                for (int r = 0; r < rows.size(); r++)
                 {
-                    for(int c=0;c<rows[r].size();c++)
+                    for (int c = 0; c < rows[r].size(); c++)
                     {
-                        //check if font exist
+                        // check if font exist
                         {
                             auto it = std::ranges::find(fonts, rows[r][c].style.font);
                             if (it == fonts.end())
                             {
-                                //font does not exist, add
+                                // font does not exist, add
                                 fonts.push_back(rows[r][c].style.font);
-                                rows[r][c].style.fontIndex = fonts.size()-1;
-                                
+                                rows[r][c].style.fontIndex = fonts.size() - 1;
                             }
                             else
                             {
@@ -1182,15 +1221,15 @@ namespace basic_XLSX_writer
                                 rows[r][c].style.fontIndex = index;
                             }
                         }
-                        
-                        //check if fill exists
+
+                        // check if fill exists
                         {
                             auto it = std::ranges::find(fills, rows[r][c].style.fill);
                             if (it == fills.end())
                             {
-                                //fill does not exist, add
+                                // fill does not exist, add
                                 fills.push_back(rows[r][c].style.fill);
-                                rows[r][c].style.fillIndex = fills.size()-1;
+                                rows[r][c].style.fillIndex = fills.size() - 1;
                             }
                             else
                             {
@@ -1199,14 +1238,14 @@ namespace basic_XLSX_writer
                             }
                         }
 
-                        //check if border exists
+                        // check if border exists
                         {
                             auto it = std::ranges::find(borders, rows[r][c].style.border);
                             if (it == borders.end())
                             {
-                                //border does not exits, add
+                                // border does not exits, add
                                 borders.push_back(rows[r][c].style.border);
-                                rows[r][c].style.borderIndex = borders.size()-1;
+                                rows[r][c].style.borderIndex = borders.size() - 1;
                             }
                             else
                             {
@@ -1215,14 +1254,14 @@ namespace basic_XLSX_writer
                             }
                         }
 
-                        //check if style exists
+                        // check if style exists
                         {
                             auto it = std::ranges::find(styles, rows[r][c].style);
                             if (it == styles.end())
                             {
-                                //style does not exists, add
+                                // style does not exists, add
                                 styles.push_back(rows[r][c].style);
-                                rows[r][c].cellStyleIndex = styles.size()-1;
+                                rows[r][c].cellStyleIndex = styles.size() - 1;
                             }
                             else
                             {
@@ -1236,41 +1275,41 @@ namespace basic_XLSX_writer
 
             std::string content = "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n";
             content += "<styleSheet xmlns='http://schemas.openxmlformats.org/spreadsheetml/2006/main' xmlns:mc='http://schemas.openxmlformats.org/markup-compatibility/2006' mc:Ignorable='x14ac' xmlns:x14ac='http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac'>\n";
-            //write the fonts
+            // write the fonts
             content += "<fonts>\n";
-            for(Font font:fonts)
+            for (Font font : fonts)
             {
-                content += "\t"+font.getXMLString()+"\n";
+                content += "\t" + font.getXMLString() + "\n";
             }
-            content +="</fonts>\n";
-            
-            //write the fill styles            
+            content += "</fonts>\n";
+
+            // write the fill styles
             content += "<fills>\n";
-            for(Fill fill:fills)
+            for (Fill fill : fills)
             {
-                content += "\t"+fill.getXMLString()+"\n";
+                content += "\t" + fill.getXMLString() + "\n";
             }
             content += "</fills>\n";
 
-            //write the borders
+            // write the borders
             content += "<borders>\n";
-            //the first border is the default border        
-            //write the rest of the borders styles
-            for(Border border:borders)
+            // the first border is the default border
+            // write the rest of the borders styles
+            for (Border border : borders)
             {
-                content += "\t"+border.getXMLString()+"\n";
+                content += "\t" + border.getXMLString() + "\n";
             }
-        
+
             content += "</borders>\n";
 
-            //write the Cell styles
+            // write the Cell styles
             content += "<cellXfs>\n";
-            for(CellStyle style:styles)
+            for (CellStyle style : styles)
             {
                 content += style.getXMLString();
             }
             content += "\n</cellXfs>\n";
-        
+
             content += "</styleSheet>\n";
             return content;
         };
@@ -1301,16 +1340,16 @@ namespace basic_XLSX_writer
 
         int errorp = 0;
         // Create or overwrite "archive.zip"
-        zip_t* archive = zip_open(filename.c_str(), ZIP_CREATE | ZIP_TRUNCATE, &errorp);
+        zip_t *archive = zip_open(filename.c_str(), ZIP_CREATE | ZIP_TRUNCATE, &errorp);
         if (!archive)
         {
             std::cerr << "Failed to open zip archive." << std::endl;
             return 1;
         }
 
-        std::vector<std::string> filenames = {"_rels/.rels","[Content_Types].xml","xl/_rels/workbook.xml.rels","xl/workbook.xml","xl/sharedStrings.xml","xl/styles.xml","xl/metadata.xml"};        
+        std::vector<std::string> filenames = {"_rels/.rels", "[Content_Types].xml", "xl/_rels/workbook.xml.rels", "xl/workbook.xml", "xl/sharedStrings.xml", "xl/styles.xml", "xl/metadata.xml"};
         std::vector<std::string> contents;
-        //cannot place in block as c_str returns raw pointer, if not out of block means destroyed and zip_source_buffer store the string raw pointer
+        // cannot place in block as c_str returns raw pointer, if not out of block means destroyed and zip_source_buffer store the string raw pointer
         contents.push_back(createRelsContent());
         contents.push_back(creatContentType());
         contents.push_back(createXL_rel());
@@ -1319,31 +1358,31 @@ namespace basic_XLSX_writer
         contents.push_back(createStylesXML());
         contents.push_back(createMetadataXML());
 
-        //add the sheets
-        for(int i=0;i<sheets.size();i++)
+        // add the sheets
+        for (int i = 0; i < sheets.size(); i++)
         {
-            std::string sheetFilename = std::format("xl/worksheets/sheet{}.xml",i+1);
+            std::string sheetFilename = std::format("xl/worksheets/sheet{}.xml", i + 1);
             filenames.push_back(sheetFilename);
             contents.push_back(sheets[i].getXMLString());
         }
-        for(int i=0;i<filenames.size();i++)
+        for (int i = 0; i < filenames.size(); i++)
         {
-            zip_source_t* mem_source = zip_source_buffer(archive, contents[i].c_str(), contents[i].size(), 0);
+            zip_source_t *mem_source = zip_source_buffer(archive, contents[i].c_str(), contents[i].size(), 0);
             if (!mem_source || zip_file_add(archive, filenames[i].c_str(), mem_source, ZIP_FL_OVERWRITE) < 0)
             {
                 zip_source_free(mem_source);
-                std::cerr << "Failed to "<<filenames[i]<<"" << std::endl;
+                std::cerr << "Failed to " << filenames[i] << "" << std::endl;
             }
         }
-        
+
         // Close and write changes to disk
         if (zip_close(archive) < 0)
         {
-            std::cerr << "Failed to write "<<filename<<": " << zip_strerror(archive) << std::endl;
+            std::cerr << "Failed to write " << filename << ": " << zip_strerror(archive) << std::endl;
             return 1;
         }
 
-        std::cout << "Created "<<filename<<" successfully." << std::endl;
+        std::cout << "Created " << filename << " successfully." << std::endl;
         return 0;
     }
 }
